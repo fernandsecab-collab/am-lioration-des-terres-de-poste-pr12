@@ -1,0 +1,75 @@
+name: Windows Electron Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      NODE_ENV: development
+      NPM_CONFIG_PRODUCTION: "false"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.20.2"
+
+      - name: Configure public npm registry
+        shell: pwsh
+        run: |
+          npm config set registry https://registry.npmjs.org/
+          npm config set fetch-retries 5
+          npm config set fetch-retry-factor 2
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+
+      - name: Clean cross-platform dependencies
+        shell: pwsh
+        run: |
+          if (Test-Path "node_modules") { Remove-Item "node_modules" -Recurse -Force }
+          if (Test-Path "package-lock.json") { Remove-Item "package-lock.json" -Force }
+          npm cache clean --force
+
+      - name: Install native Windows dependencies
+        shell: pwsh
+        run: |
+          npm install --include=dev --include=optional --legacy-peer-deps --no-audit --no-fund
+          npm install --no-save @esbuild/win32-x64@0.21.5 @rollup/rollup-win32-x64-msvc@4.62.2
+
+      - name: Verify Windows build tools
+        shell: pwsh
+        run: |
+          node --version
+          npm --version
+          node ./node_modules/vite/bin/vite.js --version
+          node ./node_modules/electron-builder/out/cli/cli.js --version
+          node -e "console.log('esbuild:', require('esbuild').version, process.platform, process.arch)"
+          if (-not (Test-Path "node_modules/@esbuild/win32-x64/esbuild.exe")) { throw "Binaire esbuild Windows absent" }
+
+      - name: Build setup and portable
+        shell: pwsh
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run dist:win
+
+      - name: Upload Windows Setup
+        uses: actions/upload-artifact@v4
+        with:
+          name: SECAB-Couplage-Expert-V62-Windows-Setup
+          path: release/windows/*Setup*.exe
+          if-no-files-found: error
+
+      - name: Upload Windows Portable
+        uses: actions/upload-artifact@v4
+        with:
+          name: SECAB-Couplage-Expert-V62-Windows-Portable
+          path: release/windows/*Portable*.exe
+          if-no-files-found: error
