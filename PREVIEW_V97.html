@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SECAB Couplage Expert V96</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--navy:#0b2136;--blue:#1769e0;--bg:#edf3f8;--line:#dbe5ef;--txt:#172333;--muted:#6b7e91;--green:#15966f}
+*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.app{height:100%;display:grid;grid-template-rows:68px 50px 1fr}
+header{background:linear-gradient(90deg,#0b2136,#174a75);color:white;display:flex;align-items:center;justify-content:space-between;padding:0 22px}
+.brand{display:flex;gap:12px;align-items:center}.logo{width:40px;height:40px;background:white;color:var(--navy);border-radius:11px;display:grid;place-items:center;font-weight:900}
+h1{font-size:17px;margin:0}small{color:#c1d4e6}.actions{display:flex;gap:8px}
+button{font:inherit;cursor:pointer}.btn{border:0;border-radius:9px;padding:10px 13px;font-weight:700}.ghost{background:#ffffff14;color:white;border:1px solid #ffffff2f}.primary{background:var(--blue);color:white}
+.workflow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;background:white;border-bottom:1px solid var(--line);padding:7px 18px}
+.step{display:flex;gap:7px;align-items:center;color:var(--muted);font-size:12px;font-weight:700}.dot{width:23px;height:23px;border-radius:50%;background:#e8eef5;display:grid;place-items:center}.done .dot{background:#ddf5ec;color:var(--green)}.active{color:var(--blue)}.active .dot{background:var(--blue);color:white}
+.workspace{display:grid;grid-template-columns:68px 1fr 345px;min-height:0}
+nav{background:white;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 8px}
+.navbtn{width:48px;height:48px;border:0;border-radius:12px;background:transparent;font-size:20px;color:#60778d}.navbtn.active,.navbtn:hover{background:#eaf2ff;color:var(--blue)}
+.mapwrap{position:relative;min-width:0}#map{height:100%;width:100%}
+.case{position:absolute;z-index:500;top:15px;left:18px;background:#fffffff2;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 12px 30px #10263d22;min-width:310px}
+.case b{font-size:14px}.status{float:right;background:#ddf5ec;color:var(--green);font-size:11px;padding:5px 8px;border-radius:999px}.meta{display:flex;gap:14px;margin-top:8px;color:var(--muted);font-size:11px}
+.tools{position:absolute;right:18px;top:15px;z-index:500;display:flex;gap:8px}.tool{width:40px;height:40px;background:white;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 20px #10263d22;font-size:18px}
+.scheme{position:absolute;left:50%;top:52%;width:180px;height:180px;transform:translate(-50%,-50%);z-index:450;cursor:grab;touch-action:none}
+.center{position:absolute;left:50%;top:50%;width:38px;height:38px;transform:translate(-50%,-50%);border-radius:10px;background:#173f66;border:4px solid white;box-shadow:0 3px 13px #0005}
+.arm{position:absolute;left:50%;top:50%;width:80px;height:9px;transform-origin:0 50%;background:#f0a51a;border:2px solid white;border-radius:99px}.arm:after{content:"";position:absolute;right:-9px;top:-6px;width:16px;height:16px;border-radius:50%;background:#12835f;border:3px solid white}.a1{transform:rotate(0)}.a2{transform:rotate(120deg)}.a3{transform:rotate(240deg)}
+.handle{position:absolute;top:-2px;left:50%;transform:translateX(-50%);width:30px;height:30px;border-radius:50%;background:var(--blue);color:white;border:3px solid white;display:grid;place-items:center}
+.bottom{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:500;background:#fffffff5;border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;gap:10px;align-items:center;box-shadow:0 12px 30px #10263d22}
+.metric{padding:0 13px;border-right:1px solid var(--line)}.metric small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase}.metric b{font-size:14px}
+aside{background:#f8fafc;border-left:1px solid var(--line);padding:14px;overflow:auto}.head{display:flex;justify-content:space-between;align-items:center}.head h2{font-size:16px}.score{color:var(--green);font-weight:800}
+.progress{height:8px;background:#e4ebf2;border-radius:99px;overflow:hidden;margin-bottom:13px}.progress span{display:block;width:94%;height:100%;background:linear-gradient(90deg,#1ab27c,#68cda4)}
+.card{background:white;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 5px 16px #10263d0d}.card h3{margin:0 0 11px;font-size:12px;color:#52687d;text-transform:uppercase;letter-spacing:.08em}
+.variants{display:flex;gap:7px}.variants button{flex:1;padding:9px;border:1px solid var(--line);background:white;border-radius:9px;font-weight:700;font-size:11px}.variants .on{background:#eaf2ff;border-color:#8db7f7;color:var(--blue)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.grid button{padding:9px;border:1px solid var(--line);background:white;border-radius:9px;font-size:11px;font-weight:700}
+.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #edf2f7;font-size:12px}.ok{color:var(--green);font-weight:800}.warn{color:#d98b13;font-weight:800}
+.ai{background:linear-gradient(145deg,#0e2944,#173f66);color:white;border:0}.ai h3{color:#bdd3e8}.ai p{color:#d7e5f2;font-size:12px;line-height:1.55}.result{background:#ffffff12;padding:10px;border-radius:10px;font-size:12px}
+.toast{position:fixed;right:20px;top:82px;z-index:9999;background:#122b45;color:white;padding:12px 16px;border-radius:10px;opacity:0;transform:translateY(-8px);transition:.25s}.toast.show{opacity:1;transform:none}
+.leaflet-control-zoom{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="brand"><div class="logo">S</div><div><h1>SECAB Couplage Expert</h1><small>V96 · Implantation professionnelle</small></div></div><div class="actions"><button class="btn ghost" onclick="toast('Synchronisation lancée')">⟳ Synchroniser</button><button class="btn ghost" onclick="toast('Affaire sauvegardée')">Sauvegarder</button><button class="btn primary" onclick="toast('Rapport premium généré')">Générer le rapport</button></div></header>
+<div class="workflow">
+<div class="step done"><div class="dot">✓</div>Identification</div><div class="step done"><div class="dot">✓</div>Terrain</div><div class="step done"><div class="dot">✓</div>Mesures</div><div class="step done"><div class="dot">✓</div>Diagnostic</div><div class="step active"><div class="dot">5</div>Implantation</div><div class="step"><div class="dot">6</div>Contrôle</div><div class="step"><div class="dot">7</div>Rapport</div>
+</div>
+<div class="workspace">
+<nav><button class="navbtn">⌂</button><button class="navbtn">⌖</button><button class="navbtn">Ω</button><button class="navbtn">⚙</button><button class="navbtn active">⌗</button><button class="navbtn">✓</button><button class="navbtn">▤</button></nav>
+<main class="mapwrap">
+<div id="map"></div>
+<div class="case"><span class="status">CONFORME</span><b>Affaire BT-2548 · Poste SAINTE-SUZANNE 03</b><div class="meta"><span>Sainte-Suzanne</span><span>GPS : 20.9066, 55.6073</span><span>Précision : 3 m</span></div></div>
+<div class="tools"><button class="tool" onclick="map.zoomIn()">＋</button><button class="tool" onclick="map.zoomOut()">−</button><button class="tool" onclick="resetScheme()">⌖</button><button class="tool" onclick="toast('Fond cartographique modifié')">▦</button></div>
+<div class="scheme" id="scheme"><div class="handle">↻</div><div class="arm a1"></div><div class="arm a2"></div><div class="arm a3"></div><div class="center"></div></div>
+<div class="bottom"><div class="metric"><small>Solution</small><b id="solution">Patte d’oie 3 × 10 m</b></div><div class="metric"><small>Cuivre</small><b>30 m</b></div><div class="metric"><small>Piquets</small><b>3</b></div><div class="metric"><small>Rotation</small><b id="rotv">0°</b></div><button class="btn primary" onclick="toast('Implantation validée')">Valider l’implantation</button></div>
+</main>
+<aside>
+<div class="head"><h2>Propriétés de l’implantation</h2><span class="score">94 %</span></div><div class="progress"><span></span></div>
+<section class="card"><h3>Variantes techniques</h3><div class="variants"><button class="on" onclick="variant(this,'Patte d’oie 3 × 10 m')">A · Patte d’oie</button><button onclick="variant(this,'Serpentin 30 m')">B · Serpentin</button><button onclick="variant(this,'4 piquets alignés')">C · Piquets</button></div></section>
+<section class="card"><h3>Transformation</h3><label style="font-size:11px;color:var(--muted)">Rotation <b id="rotl">0°</b></label><input id="range" type="range" min="0" max="355" step="5" value="0" style="width:100%"><div class="grid"><button onclick="mirror('x')">↔ Miroir horizontal</button><button onclick="mirror('y')">↕ Miroir vertical</button><button onclick="resetScheme()">⌖ Revenir au GPS</button><button onclick="toast('Position enregistrée')">💾 Enregistrer</button></div></section>
+<section class="card"><h3>Contrôle qualité</h3><div class="row"><span>GPS et précision</span><span class="ok">✓ Conforme</span></div><div class="row"><span>Distance entre terres</span><span class="ok">✓ 12,4 m</span></div><div class="row"><span>Parcelle privée</span><span class="ok">✓ Aucune</span></div><div class="row"><span>Photo finale</span><span class="warn">⚠ Manquante</span></div></section>
+<section class="card ai"><h3>Assistant SECAB</h3><p>La patte d’oie reste la variante la plus pertinente : meilleur gain estimé, aucune traversée de route et implantation entièrement située dans l’emprise disponible.</p><div class="result"><b>Résultat attendu</b><br>RM ≈ 8,9 Ω · Couplage ≈ 0,07<br>Confiance : 94 %</div></section>
+</aside>
+</div></div><div id="toast" class="toast"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map=L.map('map',{zoomControl:false,attributionControl:false}).setView([-20.9066,55.6073],18);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:20}).addTo(map);
+const s=document.getElementById('scheme');let drag=false,sx=0,sy=0,left=50,top=52,rot=0,mx=1,my=1;
+s.onpointerdown=e=>{drag=true;s.setPointerCapture(e.pointerId);sx=e.clientX;sy=e.clientY};
+s.onpointermove=e=>{if(!drag)return;const r=s.parentElement.getBoundingClientRect();left+=(e.clientX-sx)/r.width*100;top+=(e.clientY-sy)/r.height*100;sx=e.clientX;sy=e.clientY;update()};
+s.onpointerup=()=>drag=false;
+range.oninput=e=>{rot=+e.target.value;update()};
+function update(){s.style.left=left+'%';s.style.top=top+'%';s.style.transform=`translate(-50%,-50%) rotate(${rot}deg) scale(${mx},${my})`;rotv.textContent=rot+'°';rotl.textContent=rot+'°'}
+function resetScheme(){left=50;top=52;rot=0;mx=1;my=1;range.value=0;update();toast('Implantation recentrée sur le GPS')}
+function mirror(a){a==='x'?mx*=-1:my*=-1;update();toast('Symétrie appliquée')}
+function variant(b,n){document.querySelectorAll('.variants button').forEach(x=>x.classList.remove('on'));b.classList.add('on');solution.textContent=n;toast('Variante sélectionnée : '+n)}
+function toast(m){const t=document.getElementById('toast');t.textContent='✓ '+m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+</script>
+</body></html>
